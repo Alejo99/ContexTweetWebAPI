@@ -8,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ContexTweet.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ContexTweet
 {
@@ -23,6 +25,18 @@ namespace ContexTweet
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            #region DBContext and repositories
+
+            //Application DB context, uses identity framework
+            services.AddDbContext<ContexTweetDbContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("ContexTweetDb")));
+            //Tweet repository
+            services.AddScoped<ITweetRepository, EFTweetRepository>();
+            //Named entities repository
+            services.AddScoped<INamedEntityRepository, EFNamedEntityRepository>();
+
+            #endregion
+
             services.AddMvc();
         }
 
