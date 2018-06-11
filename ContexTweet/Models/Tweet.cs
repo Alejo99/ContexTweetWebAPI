@@ -14,5 +14,9 @@ namespace ContexTweet.Models
         public List<UrlTweet> Urls { get; set; }
 
         public List<NamedEntityTweet> NamedEntities { get; set; }
+
+        public int RetweetCount { get; set; }
+
+        public int FavoriteCount { get; set; }
     }
 }
