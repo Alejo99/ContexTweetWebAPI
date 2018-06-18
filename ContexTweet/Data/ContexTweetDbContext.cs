@@ -50,13 +50,13 @@ namespace ContexTweet.Data
             modelBuilder.Entity<NamedEntityTweet>()
                 .HasOne(net => net.NamedEntity)
                 .WithMany(ne => ne.Tweets)
-                .HasForeignKey(net => net.TweetId);
+                .HasForeignKey(net => net.NamedEntityText);
 
             // One tweet -> many named entities
             modelBuilder.Entity<NamedEntityTweet>()
                 .HasOne(net => net.Tweet)
                 .WithMany(t => t.NamedEntities)
-                .HasForeignKey(net => net.NamedEntityText);
+                .HasForeignKey(net => net.TweetId);
 
         }
     }
