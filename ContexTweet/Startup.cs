@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using ContexTweet.Data;
 using Microsoft.EntityFrameworkCore;
+using ContexTweet.Configuration;
 
 namespace ContexTweet
 {
@@ -25,7 +20,16 @@ namespace ContexTweet
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            #region DBContext and repositories
+            #region Configuration options
+
+            //Enable options
+            services.AddOptions();
+            //Add paging options
+            services.Configure<PagingOptions>(Configuration.GetSection("Paging"));
+
+            #endregion
+
+            #region Database and repositories
 
             //Application DB context, uses identity framework
             services.AddDbContext<ContexTweetDbContext>(options =>
