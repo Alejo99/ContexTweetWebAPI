@@ -50,7 +50,6 @@ namespace ContexTweet.Controllers
             var tweetsListVM = new TweetListViewModel();
             tweetsListVM.Tweets = tweetRepository.Urls
                 .Where(u => u.Url.Equals(url))
-                .Include(u => u.Tweet)
                 .Select(t => t.Tweet)
                 .OrderByDescending(t => t.FavoriteCount)
                 .ThenByDescending(t => t.RetweetCount)

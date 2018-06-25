@@ -19,9 +19,10 @@ BEGIN
 
     -- Insert statements for procedure here
 	INSERT INTO dbo.NamedEntities(Text, Type) 
-		SELECT DISTINCT S.Text, S.Type 
-		FROM dbo.Staging_NamedEntities S 
-		WHERE NOT EXISTS (SELECT DISTINCT Text from dbo.NamedEntities NE where S.Text = NE.Text);
+		SELECT S.Text, MIN(S.Type) AS Type
+		FROM dbo.Staging_NamedEntities S
+		WHERE NOT EXISTS (SELECT DISTINCT NE.Text FROM dbo.NamedEntities NE WHERE S.Text = NE.Text)
+		GROUP BY S.Text;
 
 	DELETE FROM dbo.Staging_NamedEntities;
 END
