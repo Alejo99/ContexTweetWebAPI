@@ -1,6 +1,5 @@
 ﻿USE [ContexTweet]
-GO
-/****** Object:  StoredProcedure [dbo].[LoadNers]    Script Date: 14/06/2018 17:57:42 ******/
+
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -10,7 +9,7 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE PROCEDURE [dbo].[LoadNers] 
+CREATE PROCEDURE LoadUrlsTweets
 AS
 BEGIN
 	-- SET NOCOUNT ON added to prevent extra result sets from
@@ -18,11 +17,14 @@ BEGIN
 	SET NOCOUNT ON;
 
     -- Insert statements for procedure here
-	INSERT INTO dbo.NamedEntities(Text, Type) 
-		SELECT S.Text, MIN(S.Type) AS Type
-		FROM dbo.Staging_NamedEntities S
-		WHERE NOT EXISTS (SELECT DISTINCT NE.Text FROM dbo.NamedEntities NE WHERE S.Text = NE.Text)
-		GROUP BY S.Text;
-
-	DELETE FROM dbo.Staging_NamedEntities;
+	INSERT INTO dbo.UrlsTweets([TweetId], [Url]) 
+		SELECT SUT.[TweetId], SUT.[Url]
+		FROM dbo.Staging_UrlsTweets SUT
+		WHERE NOT EXISTS (SELECT UT.[TweetId], UT.[Url] 
+							FROM dbo.UrlsTweets UT 
+							WHERE SUT.[TweetId] = UT.[TweetId] AND 
+								SUT.[Url] = UT.[Url]);
+	
+	-- Cleanup
+	DELETE FROM dbo.Staging_UrlsTweets;
 END
