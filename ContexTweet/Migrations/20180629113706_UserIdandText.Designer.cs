@@ -11,9 +11,10 @@ using System;
 namespace ContexTweet.Migrations
 {
     [DbContext(typeof(ContexTweetDbContext))]
-    partial class ContexTweetDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180629113706_UserIdandText")]
+    partial class UserIdandText
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

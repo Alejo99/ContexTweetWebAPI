@@ -23,14 +23,12 @@ BEGIN
 	ON (TARGET.Id = SOURCE.Id) 
 	-- When records are matched, update the records
 	WHEN MATCHED THEN 
-		UPDATE SET TARGET.SentimentScore = SOURCE.SentimentScore,
-			TARGET.[Timestamp] = SOURCE.[Timestamp],
-			TARGET.RetweetCount = SOURCE.RetweetCount,
+		UPDATE SET TARGET.RetweetCount = SOURCE.RetweetCount,
 			TARGET.FavoriteCount = SOURCE.FavoriteCount
 	-- When no records are matched, insert new data
 	WHEN NOT MATCHED BY TARGET THEN 
-		INSERT (Id, SentimentScore, [Timestamp], RetweetCount, FavoriteCount) 
-		VALUES (SOURCE.Id, SOURCE.SentimentScore, SOURCE.[Timestamp], SOURCE.RetweetCount, SOURCE.FavoriteCount);
+		INSERT (Id, [Text], UserId, SentimentScore, [Timestamp], RetweetCount, FavoriteCount) 
+		VALUES (SOURCE.Id, SOURCE.[Text], SOURCE.UserId, SOURCE.SentimentScore, SOURCE.[Timestamp], SOURCE.RetweetCount, SOURCE.FavoriteCount);
 
 	-- Cleanup
 	DELETE FROM dbo.Staging_Tweets;

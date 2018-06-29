@@ -1,4 +1,4 @@
-﻿USING [ContexTweet]
+﻿USE [ContexTweet]
 GO
 
 SET ANSI_NULLS ON

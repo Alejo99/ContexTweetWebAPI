@@ -20,7 +20,9 @@ CREATE TABLE [dbo].[Staging_Tweets](
 	[SentimentScore] [real] NOT NULL,
 	[Timestamp] [datetime2](7) NOT NULL,
 	[FavoriteCount] [int] NOT NULL,
-	[RetweetCount] [int] NOT NULL
+	[RetweetCount] [int] NOT NULL,
+	[Text] [nvarchar](max) NULL,
+	[UserId] [nvarchar](max) NULL,
 ) ON [PRIMARY]
 GO
 
