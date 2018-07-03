@@ -1,9 +1,5 @@
 ﻿using ContexTweet.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ContexTweet.Data
 {
@@ -13,6 +9,7 @@ namespace ContexTweet.Data
         public DbSet<NamedEntity> NamedEntities { get; set; }
         public DbSet<UrlTweet> UrlsTweets { get; set; }
         public DbSet<NamedEntityTweet> NamedEntitiesTweets { get; set; }
+        public DbSet<UrlTweetIndex> UrlTweetIndex { get; set; }
 
         public ContexTweetDbContext(DbContextOptions<ContexTweetDbContext> options) 
             : base(options)
@@ -57,6 +54,16 @@ namespace ContexTweet.Data
                 .HasOne(net => net.Tweet)
                 .WithMany(t => t.NamedEntities)
                 .HasForeignKey(net => net.TweetId);
+
+            // Url Tweet Index model
+            modelBuilder.Entity<UrlTweetIndex>()
+                .HasKey(uti => new { uti.Url, uti.TweetId });
+
+            // One tweet -> many urls
+            modelBuilder.Entity<UrlTweetIndex>()
+                .HasOne(uti => uti.Tweet)
+                .WithMany()
+                .HasForeignKey(uti => uti.TweetId);
 
         }
     }
