@@ -42,8 +42,8 @@ namespace ContexTweet.Clustering
             var urls = tweetsRepo.Urls
                 .Select(urltw => urltw.Url)
                 .Distinct()
-                .AsEnumerable();
-            Console.WriteLine(string.Format("* {0} urls", urls.Count()));
+                .ToArray();
+            Console.WriteLine(string.Format("* {0} urls", urls.Length));
 
             // Iterate over the URLs
             foreach(string url in urls)
@@ -52,8 +52,8 @@ namespace ContexTweet.Clustering
                 var tweets = tweetsRepo.Urls
                     .Where(urltw => urltw.Url.Equals(url))
                     .Select(urltw => urltw.Tweet)
-                    .AsEnumerable();
-                var numberOfTweets = tweets.Count();
+                    .ToArray();
+                var numberOfTweets = tweets.Length;
                 Console.WriteLine(string.Format("** {0} tweets for url {1}", numberOfTweets, url));
 
                 // If there are at least 11 tweets...
@@ -82,18 +82,24 @@ namespace ContexTweet.Clustering
                     var clusters = kmedoids.Learn(features);
                     var centroids = clusters.Centroids;
 
-                    // TODO: clean index table and insert url -> centroid (tweet)
+                    // Clean index table for the url
+                    var toRemove = tweetsRepo.IndexedUrls.Where(iu => iu.Url.Equals(url)).ToArray();
+                    tweetsRepo.IndexedUrls.RemoveRange(toRemove);
+                    tweetsRepo.Commit();
 
-                    var medoids = new List<Models.Tweet>();
-                    foreach(var centroid in centroids)
+                    // Insert url -> centroid(tweet)
+                    foreach (var centroid in centroids)
                     {
-                        var tweet = tweets
-                            .Where(tw => tw.Id.Equals(tweetIds[centroid[0]]))
-                            .FirstOrDefault();
-                        medoids.Add(tweet);
+                        var indexedUrl = new Models.UrlTweetIndex()
+                        {
+                            TweetId = tweetIds[centroid[0]],
+                            Url = url
+                        };
+                        tweetsRepo.IndexedUrls.Add(indexedUrl);
                     }
 
-                    Console.WriteLine("yey");
+                    // Save changes to the database
+                    tweetsRepo.Commit();
                 }
             }
         }
@@ -110,7 +116,7 @@ namespace ContexTweet.Clustering
             var dbOptions = new DbContextOptionsBuilder<ContexTweetDbContext>();
             dbOptions.UseSqlServer(connString);
             var dbContext = new ContexTweetDbContext(dbOptions.Options);
-
+            
             // Repository
             return new EFTweetRepository(dbContext);
         }

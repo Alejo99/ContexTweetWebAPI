@@ -17,5 +17,12 @@ namespace ContexTweet.Data
         public DbSet<UrlTweet> Urls => context.UrlsTweets;
 
         public DbSet<NamedEntityTweet> NamedEntities => context.NamedEntitiesTweets;
+
+        public DbSet<UrlTweetIndex> IndexedUrls => context.UrlTweetIndex;
+
+        public void Commit()
+        {
+            context.SaveChanges();
+        }
     }
 }
