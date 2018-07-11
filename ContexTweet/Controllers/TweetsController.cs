@@ -23,11 +23,30 @@ namespace ContexTweet.Controllers
             tweetRepository = tweetRepo;
         }
 
-        // GET: tweets
+        // GET: tweets/{p}
         [HttpGet]
-        public IEnumerable<Tweet> Get()
+        public IActionResult Get(int p = 1)
         {
-            return tweetRepository.Tweets.ToList();
+            var tweetsListVM = new TweetListViewModel();
+            tweetsListVM.Tweets = tweetRepository.Tweets
+                .OrderByDescending(t => t.FavoriteCount)
+                .ThenByDescending(t => t.RetweetCount)
+                .Skip((p - 1) * pagingOptions.PageSize)
+                .Take(pagingOptions.PageSize)
+                .AsEnumerable();
+            tweetsListVM.PagingInfo = new PagingInfo()
+            {
+                CurrentPage = p,
+                ItemsPerPage = pagingOptions.PageSize,
+                TotalItems = tweetRepository.Tweets
+                .Count()
+            };
+
+            if (tweetsListVM.Tweets.Count() > 0)
+            {
+                return Ok(tweetsListVM);
+            }
+            return NotFound();
         }
 
         // GET tweets/{id}
@@ -42,35 +61,33 @@ namespace ContexTweet.Controllers
             return Ok(tweet);
         }
         
-        // POST tweets/byurl/{p}
+        // POST tweets/byurl
         [HttpPost]
-        [Route("byurl/{p}")]
-        public IActionResult ByUrl(int p, [FromBody] string url)
+        [Route("byurl")]
+        public IActionResult ByUrl([FromBody] string url)
         {
-            var tweetsListVM = new TweetListViewModel();
-            tweetsListVM.Tweets = tweetRepository.Urls
+            var tweets = tweetRepository.Urls
                 .Where(u => u.Url.Equals(url))
                 .Select(t => t.Tweet)
                 .OrderByDescending(t => t.FavoriteCount)
                 .ThenByDescending(t => t.RetweetCount)
-                .Skip((p - 1) * pagingOptions.PageSize)
-                .Take(pagingOptions.PageSize)
                 .AsEnumerable();
-            tweetsListVM.PagingInfo = new PagingInfo()
-            {
-                CurrentPage = p,
-                ItemsPerPage = pagingOptions.PageSize,
-                TotalItems = tweetRepository.Urls
-                .Where(u => u.Url.Equals(url))
-                .Select(t => t.Tweet)
-                .Count()
-            };
 
-            if(tweetsListVM.Tweets.Count() > 0)
+            if(tweets.Count() > 0)
             {
-                return Ok(tweetsListVM); 
+                return Ok(tweets); 
             }
             return NotFound();
+        }
+
+        [HttpGet]
+        [Route("urls")]
+        public IEnumerable<string> Urls()
+        {
+            return tweetRepository.Urls
+                .Select(utw => utw.Url)
+                .Distinct()
+                .AsEnumerable();
         }
         /*
         // PUT api/values/5
