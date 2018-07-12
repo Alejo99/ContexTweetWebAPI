@@ -2,7 +2,7 @@
 {
     public class PagingOptions
     {
-        public int PageSize { get; set; } = 5;
+        public virtual int PageSize { get; set; } = 5;
 
         public PagingOptions()
         {

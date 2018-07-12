@@ -23,7 +23,7 @@ namespace ContexTweet.Controllers
             tweetRepository = tweetRepo;
         }
 
-        // GET: tweets/{p}
+        // GET: tweets?{p=1}
         [HttpGet]
         public IActionResult Get(int p = 1)
         {
@@ -60,25 +60,6 @@ namespace ContexTweet.Controllers
             }
             return Ok(tweet);
         }
-        
-        // POST tweets/byurl
-        [HttpPost]
-        [Route("byurl")]
-        public IActionResult ByUrl([FromBody] string url)
-        {
-            var tweets = tweetRepository.Urls
-                .Where(u => u.Url.Equals(url))
-                .Select(t => t.Tweet)
-                .OrderByDescending(t => t.FavoriteCount)
-                .ThenByDescending(t => t.RetweetCount)
-                .AsEnumerable();
-
-            if(tweets.Count() > 0)
-            {
-                return Ok(tweets); 
-            }
-            return NotFound();
-        }
 
         [HttpGet]
         [Route("urls")]
@@ -89,18 +70,38 @@ namespace ContexTweet.Controllers
                 .Distinct()
                 .AsEnumerable();
         }
-        /*
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
-        {
-        }
 
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        // POST tweets/byurl
+        [HttpPost]
+        [Route("byurl")]
+        public IActionResult ByUrl([FromBody] string url)
         {
+            // Check if tweets were clustered for this url
+            var indexedTweets = tweetRepository.IndexedUrls
+                .Where(u => u.Url.Equals(url))
+                .Select(t => t.Tweet)
+                .OrderByDescending(t => t.FavoriteCount)
+                .ThenByDescending(t => t.RetweetCount)
+                .AsEnumerable();
+            if(indexedTweets.Count() > 0)
+            {
+                return Ok(indexedTweets);   
+            }
+
+            // Check if tweets were not clustered for this url
+            var tweets = tweetRepository.Urls
+                .Where(u => u.Url.Equals(url))
+                .Select(t => t.Tweet)
+                .OrderByDescending(t => t.FavoriteCount)
+                .ThenByDescending(t => t.RetweetCount)
+                .AsEnumerable();
+            if (tweets.Count() > 0)
+            {
+                return Ok(tweets); 
+            }
+
+            // No tweets (neither clustered nor unclustered) for this url
+            return NotFound();
         }
-        */
     }
 }
