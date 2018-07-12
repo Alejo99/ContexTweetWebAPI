@@ -111,7 +111,70 @@ namespace ContexTweet.Test.Controllers
                 }
             }.AsQueryable();
 
-            //TODO: mock indexed urls and urls
+            //Mock DbSet<UrlTweet>
+            var urls = new List<UrlTweet>()
+            {
+                new UrlTweet()
+                {
+                    Tweet = tweets.Where(t => t.Id.Equals("twt1")).FirstOrDefault(),
+                    TweetId = "twt1",
+                    Url = "http://example.com/url1"
+                    
+                },
+                new UrlTweet()
+                {
+                    Tweet = tweets.Where(t => t.Id.Equals("twt2")).FirstOrDefault(),
+                    TweetId = "twt2",
+                    Url = "http://example.com/url1"
+
+                },
+                new UrlTweet()
+                {
+                    Tweet = tweets.Where(t => t.Id.Equals("twt3")).FirstOrDefault(),
+                    TweetId = "twt3",
+                    Url = "http://example.com/url1"
+
+                },
+                new UrlTweet()
+                {
+                    Tweet = tweets.Where(t => t.Id.Equals("twt4")).FirstOrDefault(),
+                    TweetId = "twt4",
+                    Url = "http://example.com/url2"
+
+                },
+                new UrlTweet()
+                {
+                    Tweet = tweets.Where(t => t.Id.Equals("twt5")).FirstOrDefault(),
+                    TweetId = "twt5",
+                    Url = "http://example.com/url2"
+
+                },
+                new UrlTweet()
+                {
+                    Tweet = tweets.Where(t => t.Id.Equals("twt6")).FirstOrDefault(),
+                    TweetId = "twt6",
+                    Url = "http://example.com/url3"
+
+                },
+            }.AsQueryable();
+
+            var indexedUrls = new List<UrlTweetIndex>()
+            {
+                new UrlTweetIndex()
+                {
+                    Tweet = tweets.Where(t => t.Id.Equals("twt1")).FirstOrDefault(),
+                    TweetId = "twt1",
+                    Url = "http://example.com/url1"
+
+                },
+                new UrlTweetIndex()
+                {
+                    Tweet = tweets.Where(t => t.Id.Equals("twt2")).FirstOrDefault(),
+                    TweetId = "twt2",
+                    Url = "http://example.com/url1"
+
+                }
+            }.AsQueryable();
 
             Mock<DbSet<Tweet>> mockTweets = new Mock<DbSet<Tweet>>();
             mockTweets.As<IQueryable<Tweet>>().Setup(m => m.Provider).Returns(tweets.Provider);
@@ -119,9 +182,23 @@ namespace ContexTweet.Test.Controllers
             mockTweets.As<IQueryable<Tweet>>().Setup(m => m.ElementType).Returns(tweets.ElementType);
             mockTweets.As<IQueryable<Tweet>>().Setup(m => m.GetEnumerator()).Returns(tweets.GetEnumerator());
 
+            Mock<DbSet<UrlTweet>> mockUrls = new Mock<DbSet<UrlTweet>>();
+            mockUrls.As<IQueryable<UrlTweet>>().Setup(m => m.Provider).Returns(urls.Provider);
+            mockUrls.As<IQueryable<UrlTweet>>().Setup(m => m.Expression).Returns(urls.Expression);
+            mockUrls.As<IQueryable<UrlTweet>>().Setup(m => m.ElementType).Returns(urls.ElementType);
+            mockUrls.As<IQueryable<UrlTweet>>().Setup(m => m.GetEnumerator()).Returns(urls.GetEnumerator());
+
+            Mock<DbSet<UrlTweetIndex>> mockIndexedUrls = new Mock<DbSet<UrlTweetIndex>>();
+            mockIndexedUrls.As<IQueryable<UrlTweetIndex>>().Setup(m => m.Provider).Returns(indexedUrls.Provider);
+            mockIndexedUrls.As<IQueryable<UrlTweetIndex>>().Setup(m => m.Expression).Returns(indexedUrls.Expression);
+            mockIndexedUrls.As<IQueryable<UrlTweetIndex>>().Setup(m => m.ElementType).Returns(indexedUrls.ElementType);
+            mockIndexedUrls.As<IQueryable<UrlTweetIndex>>().Setup(m => m.GetEnumerator()).Returns(indexedUrls.GetEnumerator());
+
             //Mock advert repository
             MockRepo = new Mock<ITweetRepository>();
             MockRepo.Setup(m => m.Tweets).Returns(mockTweets.Object);
+            MockRepo.Setup(m => m.Urls).Returns(mockUrls.Object);
+            MockRepo.Setup(m => m.IndexedUrls).Returns(mockIndexedUrls.Object);
 
             //Mock pagingoptions
             Mock<PagingOptions> mockPagingOpts = new Mock<PagingOptions>();
@@ -253,7 +330,67 @@ namespace ContexTweet.Test.Controllers
             Assert.Equal(404, notFoundResult.StatusCode);
         }
 
-        //TODO: urls and byurl get requests
-        
+        [Fact]
+        public void CanGetDistinctUrls()
+        {
+            //Arrange
+            // controller arranged from the controller fixture
+
+            //Act
+            var result = Controller.Urls();
+
+            //Assert
+            Assert.Equal(3, result.Count());
+            Assert.Equal("http://example.com/url1", result.First());
+            Assert.Equal("http://example.com/url3", result.Last());
+            Assert.Equal("http://example.com/url2", result.ElementAt(1));
+        }
+
+        [Fact]
+        public void CanGetIndexedTweetsByUrl()
+        {
+            //Arrange
+            // controller arranged from the controller fixture
+
+            //Act
+            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url1"));
+
+            //Assert
+            Assert.Equal(2, result.Count());
+            Assert.Equal("twt1", result.First()?.Id);
+            Assert.Equal("twt2", result.Last()?.Id);
+        }
+
+        [Fact]
+        public void CanGetUnindexedTweetsByUrl()
+        {
+            //Arrange
+            // controller arranged from the controller fixture
+
+            //Act
+            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url2"));
+            var result2 = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url3"));
+
+            //Assert
+            Assert.Equal(2, result.Count());
+            Assert.Equal("twt4", result.First()?.Id);
+            Assert.Equal("twt5", result.Last()?.Id);
+            Assert.Equal("twt6", result2.First()?.Id);
+        }
+
+        [Fact]
+        public void CannotGetTweetsByNonexistantUrl()
+        {
+            //Arrange
+            // controller arranged from the controller fixture
+
+            //Act
+            var result =Controller.ByUrl("http://example.com/doesntexist");
+            var notFoundResult = result as NotFoundResult;
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.Equal(404, notFoundResult.StatusCode);
+        }
     }
 }
