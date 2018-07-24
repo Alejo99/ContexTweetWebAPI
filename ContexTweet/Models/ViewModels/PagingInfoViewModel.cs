@@ -2,7 +2,7 @@
 
 namespace ContexTweet.Models.ViewModels
 {
-    public class PagingInfo
+    public class PagingInfoViewModel
     {
         public int TotalItems { get; set; }
         public int ItemsPerPage { get; set; }

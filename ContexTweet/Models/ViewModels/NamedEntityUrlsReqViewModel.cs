@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace ContexTweet.Models.ViewModels
 {
-    public class TweetListViewModel
+    public class NamedEntityUrlsReqViewModel
     {
-        public IEnumerable<Tweet> Tweets { get; set; }
-        public PagingInfoViewModel PagingInfo { get; set; }
+        public string Url { get; set; }
+        public string NamedEntityText { get; set; }
     }
 }

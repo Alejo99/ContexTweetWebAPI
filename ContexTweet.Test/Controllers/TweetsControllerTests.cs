@@ -294,7 +294,7 @@ namespace ContexTweet.Test.Controllers
             var result = GetViewModel<TweetListViewModel>(Controller.Get(2));
 
             //Assert
-            PagingInfo pageInfo = result.PagingInfo;
+            PagingInfoViewModel pageInfo = result.PagingInfo;
             Assert.Equal(2, pageInfo.CurrentPage);
             Assert.Equal(3, pageInfo.ItemsPerPage);
             Assert.Equal(7, pageInfo.TotalItems);
