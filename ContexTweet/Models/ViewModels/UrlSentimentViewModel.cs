@@ -5,9 +5,10 @@ using System.Threading.Tasks;
 
 namespace ContexTweet.Models.ViewModels
 {
-    public class NamedEntityUrlsReqViewModel
+    public class UrlSentimentViewModel
     {
         public string Url { get; set; }
-        public string NamedEntityText { get; set; }
+        public IEnumerable<float> SentimentScores { get; set; }
+        public float Average { get; set; }
     }
 }

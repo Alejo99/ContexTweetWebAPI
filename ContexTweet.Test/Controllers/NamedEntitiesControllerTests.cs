@@ -1,11 +1,8 @@
-﻿using ContexTweet.Configuration;
-using ContexTweet.Controllers;
+﻿using ContexTweet.Controllers;
 using ContexTweet.Data;
 using ContexTweet.Models;
-using ContexTweet.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -15,12 +12,12 @@ using Xunit;
 
 namespace ContexTweet.Test.Controllers
 {
-    public class TweetsControllerFixture : IDisposable
+    public class NamedEntitiesControllerFixture : IDisposable
     {
-        public TweetsController Controller { get; private set; }
+        public NamedEntitiesController Controller { get; private set; }
         public Mock<ITweetRepository> MockRepo { get; private set; }
 
-        public TweetsControllerFixture()
+        public NamedEntitiesControllerFixture()
         {
             //Mock DbSet<adverts>
             var tweets = new List<Tweet>()
@@ -41,7 +38,7 @@ namespace ContexTweet.Test.Controllers
                 {
                     Id = "twt2",
                     Text = "Tweet 2",
-                    SentimentScore = (float)-0.4,
+                    SentimentScore = (float)-0.3,
                     FavoriteCount = 1,
                     RetweetCount = 0,
                     NamedEntities = null,
@@ -119,7 +116,7 @@ namespace ContexTweet.Test.Controllers
                     Tweet = tweets.Where(t => t.Id.Equals("twt1")).FirstOrDefault(),
                     TweetId = "twt1",
                     Url = "http://example.com/url1"
-                    
+
                 },
                 new UrlTweet()
                 {
@@ -158,22 +155,37 @@ namespace ContexTweet.Test.Controllers
                 },
             }.AsQueryable();
 
-            var indexedUrls = new List<UrlTweetIndex>()
+            //Mock DbSet<NamedEntityTweet>
+            var namedEntities = new List<NamedEntityTweet>()
             {
-                new UrlTweetIndex()
+                new NamedEntityTweet()
                 {
+                    NamedEntityText = "keyword1",
                     Tweet = tweets.Where(t => t.Id.Equals("twt1")).FirstOrDefault(),
                     TweetId = "twt1",
-                    Url = "http://example.com/url1"
 
                 },
-                new UrlTweetIndex()
+                new NamedEntityTweet()
                 {
-                    Tweet = tweets.Where(t => t.Id.Equals("twt2")).FirstOrDefault(),
-                    TweetId = "twt2",
-                    Url = "http://example.com/url1"
+                    NamedEntityText = "keyword2",
+                    Tweet = tweets.Where(t => t.Id.Equals("twt1")).FirstOrDefault(),
+                    TweetId = "twt1",
 
-                }
+                },
+                new NamedEntityTweet()
+                {
+                    NamedEntityText = "keyword1",
+                    Tweet = tweets.Where(t => t.Id.Equals("twt4")).FirstOrDefault(),
+                    TweetId = "twt4",
+
+                },
+                new NamedEntityTweet()
+                {
+                    NamedEntityText = "keyword3",
+                    Tweet = tweets.Where(t => t.Id.Equals("twt3")).FirstOrDefault(),
+                    TweetId = "twt3",
+
+                },
             }.AsQueryable();
 
             Mock<DbSet<Tweet>> mockTweets = new Mock<DbSet<Tweet>>();
@@ -188,27 +200,20 @@ namespace ContexTweet.Test.Controllers
             mockUrls.As<IQueryable<UrlTweet>>().Setup(m => m.ElementType).Returns(urls.ElementType);
             mockUrls.As<IQueryable<UrlTweet>>().Setup(m => m.GetEnumerator()).Returns(urls.GetEnumerator());
 
-            Mock<DbSet<UrlTweetIndex>> mockIndexedUrls = new Mock<DbSet<UrlTweetIndex>>();
-            mockIndexedUrls.As<IQueryable<UrlTweetIndex>>().Setup(m => m.Provider).Returns(indexedUrls.Provider);
-            mockIndexedUrls.As<IQueryable<UrlTweetIndex>>().Setup(m => m.Expression).Returns(indexedUrls.Expression);
-            mockIndexedUrls.As<IQueryable<UrlTweetIndex>>().Setup(m => m.ElementType).Returns(indexedUrls.ElementType);
-            mockIndexedUrls.As<IQueryable<UrlTweetIndex>>().Setup(m => m.GetEnumerator()).Returns(indexedUrls.GetEnumerator());
+            Mock<DbSet<NamedEntityTweet>> mockNamedEntities = new Mock<DbSet<NamedEntityTweet>>();
+            mockNamedEntities.As<IQueryable<NamedEntityTweet>>().Setup(m => m.Provider).Returns(namedEntities.Provider);
+            mockNamedEntities.As<IQueryable<NamedEntityTweet>>().Setup(m => m.Expression).Returns(namedEntities.Expression);
+            mockNamedEntities.As<IQueryable<NamedEntityTweet>>().Setup(m => m.ElementType).Returns(namedEntities.ElementType);
+            mockNamedEntities.As<IQueryable<NamedEntityTweet>>().Setup(m => m.GetEnumerator()).Returns(namedEntities.GetEnumerator());
 
             //Mock tweet repository
             MockRepo = new Mock<ITweetRepository>();
             MockRepo.Setup(m => m.Tweets).Returns(mockTweets.Object);
             MockRepo.Setup(m => m.Urls).Returns(mockUrls.Object);
-            MockRepo.Setup(m => m.IndexedUrls).Returns(mockIndexedUrls.Object);
-
-            //Mock pagingoptions
-            Mock<PagingOptions> mockPagingOpts = new Mock<PagingOptions>();
-            mockPagingOpts.SetupGet(po => po.PageSize).Returns(3);
-
-            Mock<IOptions<PagingOptions>> mockIOptions = new Mock<IOptions<PagingOptions>>();
-            mockIOptions.Setup(m => m.Value).Returns(mockPagingOpts.Object);
+            MockRepo.Setup(m => m.NamedEntities).Returns(mockNamedEntities.Object);
 
             //Create controller
-            Controller = new TweetsController(mockIOptions.Object, MockRepo.Object);
+            Controller = new NamedEntitiesController(MockRepo.Object);
         }
 
         public void Dispose()
@@ -217,12 +222,12 @@ namespace ContexTweet.Test.Controllers
         }
     }
 
-    public class TweetsControllerTests : IClassFixture<TweetsControllerFixture>
+    public class NamedEntitiesControllerTests : IClassFixture<NamedEntitiesControllerFixture>
     {
-        public TweetsController Controller { get; private set; }
+        public NamedEntitiesController Controller { get; private set; }
         public Mock<ITweetRepository> Repository { get; set; }
 
-        public TweetsControllerTests(TweetsControllerFixture fixture)
+        public NamedEntitiesControllerTests(NamedEntitiesControllerFixture fixture)
         {
             Controller = fixture.Controller;
             Repository = fixture.MockRepo;
@@ -234,142 +239,29 @@ namespace ContexTweet.Test.Controllers
         }
 
         [Fact]
-        public void CanGetPagedTweets()
+        public void CanGetNamedEntitiesByUrl()
         {
             //Arrange
             // controller arranged from the controller fixture
 
             //Act
-            var page1 = GetViewModel<TweetListViewModel>(Controller.Get());
-            var page3 = GetViewModel<TweetListViewModel>(Controller.Get(3));
+            var result = GetViewModel<IEnumerable<string>>(Controller.NamedEntities("http://example.com/url1"));
 
             //Assert
-            Assert.Equal(7, page1.PagingInfo.TotalItems);
-            Assert.Equal(7, page3.PagingInfo.TotalItems);
-            Assert.Equal("twt4", page1.Tweets.First()?.Id);
-            Assert.Equal("twt7", page1.Tweets.Last()?.Id);
-            Assert.Equal("twt2", page3.Tweets.First()?.Id);
-            Assert.Equal("twt2", page3.Tweets.Last()?.Id);
+            Assert.Equal(3, result.Count());
+            Assert.Equal("keyword1", result.First());
+            Assert.Equal("keyword2", result.ElementAt(1));
+            Assert.Equal("keyword3", result.Last());
         }
 
         [Fact]
-        public void CanGetNotFoundTweets()
+        public void CannotGetNamedEntitiesByNonexistingUrl()
         {
             //Arrange
             // controller arranged from the controller fixture
 
             //Act
-            var result = Controller.Get(4);
-            var notFoundResult = result as NotFoundResult;
-
-            //Assert
-            Assert.NotNull(result);
-            Assert.Equal(404, notFoundResult.StatusCode);
-        }
-        
-        [Fact]
-        public void CanPaginateAndOrderResults()
-        {
-            //Arrange
-            // controller arranged from the controller fixture
-
-            //Act
-            var result = GetViewModel<TweetListViewModel>(Controller.Get(2));
-
-            //Assert
-            Assert.Equal(3, result.Tweets.Count());
-            var advList = result.Tweets.ToList();
-            Assert.Equal("twt1", advList.First()?.Id);
-            Assert.Equal("twt3", advList.Last()?.Id);
-            Assert.Equal("twt5", advList.ElementAt(1)?.Id);
-        }
-
-        [Fact]
-        public void CanSendPaginationViewModel()
-        {
-            //Arrange
-            // controller arranged from the controller fixture
-
-            //Act
-            var result = GetViewModel<TweetListViewModel>(Controller.Get(2));
-
-            //Assert
-            PagingInfoViewModel pageInfo = result.PagingInfo;
-            Assert.Equal(2, pageInfo.CurrentPage);
-            Assert.Equal(3, pageInfo.ItemsPerPage);
-            Assert.Equal(7, pageInfo.TotalItems);
-            Assert.Equal(3, pageInfo.TotalPages);
-        }
-        
-        [Fact]
-        public void CanGetTweetById()
-        {
-            //Arrange
-            // controller arranged from the controller fixture
-
-            //Act
-            var result = GetViewModel<Tweet>(Controller.Get("twt3"));
-
-            //Assert
-            Assert.Equal("Tweet 3", result.Text);
-            Assert.Equal("twt3", result.Id);
-        }
-
-        [Fact]
-        public void CannotGetUnexistantTweetById()
-        {
-            //Arrange
-            // controller arranged from the controller fixture
-
-            //Act
-            var result = Controller.Get(4);
-            var notFoundResult = result as NotFoundResult;
-
-            //Assert
-            Assert.NotNull(result);
-            Assert.Equal(404, notFoundResult.StatusCode);
-        }
-
-        [Fact]
-        public void CanGetIndexedTweetsByUrl()
-        {
-            //Arrange
-            // controller arranged from the controller fixture
-
-            //Act
-            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url1"));
-
-            //Assert
-            Assert.Equal(2, result.Count());
-            Assert.Equal("twt1", result.First()?.Id);
-            Assert.Equal("twt2", result.Last()?.Id);
-        }
-
-        [Fact]
-        public void CanGetUnindexedTweetsByUrl()
-        {
-            //Arrange
-            // controller arranged from the controller fixture
-
-            //Act
-            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url2"));
-            var result2 = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url3"));
-
-            //Assert
-            Assert.Equal(2, result.Count());
-            Assert.Equal("twt4", result.First()?.Id);
-            Assert.Equal("twt5", result.Last()?.Id);
-            Assert.Equal("twt6", result2.First()?.Id);
-        }
-
-        [Fact]
-        public void CannotGetTweetsByNonexistantUrl()
-        {
-            //Arrange
-            // controller arranged from the controller fixture
-
-            //Act
-            var result =Controller.ByUrl("http://example.com/doesntexist");
+            var result = Controller.NamedEntities("http://example.com/url100");
             var notFoundResult = result as NotFoundResult;
 
             //Assert
