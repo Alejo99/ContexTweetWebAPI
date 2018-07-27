@@ -63,34 +63,51 @@ namespace ContexTweet.Controllers
         // GET tweets/byurl
         [HttpGet]
         [Route("byurl")]
-        public IActionResult ByUrl(string url)
+        public IActionResult ByUrl(string url, string sortOrder="popular")
         {
             // Check if tweets were clustered for this url
-            var indexedTweets = tweetRepository.IndexedUrls
+            var tweets = tweetRepository.IndexedUrls
                 .Where(u => u.Url.Equals(url))
-                .Select(t => t.Tweet)
-                .OrderByDescending(t => t.FavoriteCount)
-                .ThenByDescending(t => t.RetweetCount)
-                .AsEnumerable();
-            if (indexedTweets.Count() > 0)
-            {
-                return Ok(indexedTweets);
-            }
-
-            // Check if tweets were not clustered for this url
-            var tweets = tweetRepository.Urls
-                .Where(u => u.Url.Equals(url))
-                .Select(t => t.Tweet)
-                .OrderByDescending(t => t.FavoriteCount)
-                .ThenByDescending(t => t.RetweetCount)
-                .AsEnumerable();
+                .Select(t => t.Tweet);
+            tweets = SortTweets(tweets, sortOrder);
+            
             if (tweets.Count() > 0)
             {
-                return Ok(tweets);
+                return Ok(tweets.AsEnumerable());
+            }
+
+            // If tweets were not clustered for this url
+            tweets = tweetRepository.Urls
+                .Where(u => u.Url.Equals(url))
+                .Select(t => t.Tweet);
+            tweets = SortTweets(tweets, sortOrder);
+
+            if (tweets.Count() > 0)
+            {
+                return Ok(tweets.AsEnumerable());
             }
 
             // No tweets (neither clustered nor unclustered) for this url
             return NotFound();
+        }
+        
+        private IQueryable<Models.Tweet> SortTweets(IQueryable<Models.Tweet> tweets, string sortOrder="popular")
+        {
+            switch (sortOrder)
+            {
+                case "positive":
+                    tweets = tweets.OrderByDescending(t => t.SentimentScore);
+                    break;
+                case "negative":
+                    tweets = tweets.OrderBy(t => t.SentimentScore);
+                    break;
+                case "popular":
+                default:
+                    tweets = tweets.OrderByDescending(t => t.FavoriteCount)
+                        .ThenByDescending(t => t.RetweetCount);
+                    break;
+            }
+            return tweets;
         }
     }
 }
