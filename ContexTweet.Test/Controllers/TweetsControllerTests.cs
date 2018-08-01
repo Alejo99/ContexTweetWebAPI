@@ -373,14 +373,41 @@ namespace ContexTweet.Test.Controllers
             // controller arranged from the controller fixture
 
             //Act
-            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url2"));
-            var result2 = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url3"));
+            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url3"));
 
             //Assert
             Assert.Equal(2, result.Count());
-            Assert.Equal("twt4", result.First()?.Id);
-            Assert.Equal("twt5", result.Last()?.Id);
-            Assert.Equal("twt6", result2.First()?.Id);
+            Assert.Equal("twt6", result.First()?.Id);
+        }
+
+        [Fact]
+        public void CanGetIndexedTweetsByUrlOrderedByInversePopularity()
+        {
+            //Arrange
+            // controller arranged from the controller fixture
+
+            //Act
+            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url1", "popular-asc"));
+
+            //Assert
+            Assert.Equal(2, result.Count());
+            Assert.Equal("twt2", result.First()?.Id);
+            Assert.Equal("twt1", result.Last()?.Id);
+        }
+
+        [Fact]
+        public void CanGetUnindexedTweetsByUrlOrderedByInversePopularity()
+        {
+            //Arrange
+            // controller arranged from the controller fixture
+
+            //Act
+            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url3", "popular-asc"));
+
+            //Assert
+            Assert.Equal(2, result.Count());
+            Assert.Equal("twt7", result.First()?.Id);
+            Assert.Equal("twt6", result.Last()?.Id);
         }
 
         [Fact]
@@ -405,7 +432,7 @@ namespace ContexTweet.Test.Controllers
             // controller arranged from the controller fixture
 
             //Act
-            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url2", "negative"));
+            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url2", "sentiment-asc"));
 
             //Assert
             Assert.Equal(2, result.Count());
@@ -420,7 +447,7 @@ namespace ContexTweet.Test.Controllers
             // controller arranged from the controller fixture
 
             //Act
-            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url3", "positive"));
+            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url3", "sentiment-desc"));
 
             //Assert
             Assert.Equal(2, result.Count());
@@ -435,7 +462,7 @@ namespace ContexTweet.Test.Controllers
             // controller arranged from the controller fixture
 
             //Act
-            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url3", "negative"));
+            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url3", "sentiment-asc"));
 
             //Assert
             Assert.Equal(2, result.Count());

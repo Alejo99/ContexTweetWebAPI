@@ -63,7 +63,7 @@ namespace ContexTweet.Controllers
         // GET tweets/byurl
         [HttpGet]
         [Route("byurl")]
-        public IActionResult ByUrl(string url, string sortOrder="popular")
+        public IActionResult ByUrl(string url, string sortOrder="popular-desc")
         {
             // Check if tweets were clustered for this url
             var tweets = tweetRepository.IndexedUrls
@@ -91,17 +91,21 @@ namespace ContexTweet.Controllers
             return NotFound();
         }
         
-        private IQueryable<Models.Tweet> SortTweets(IQueryable<Models.Tweet> tweets, string sortOrder="popular")
+        private IQueryable<Models.Tweet> SortTweets(IQueryable<Models.Tweet> tweets, string sortOrder="popular-desc")
         {
             switch (sortOrder)
             {
-                case "positive":
+                case "sentiment-desc":
                     tweets = tweets.OrderByDescending(t => t.SentimentScore);
                     break;
-                case "negative":
+                case "sentiment-asc":
                     tweets = tweets.OrderBy(t => t.SentimentScore);
                     break;
-                case "popular":
+                case "popular-asc":
+                    tweets = tweets.OrderBy(t => t.FavoriteCount)
+                        .ThenBy(t => t.RetweetCount);
+                    break;
+                case "popular-desc":
                 default:
                     tweets = tweets.OrderByDescending(t => t.FavoriteCount)
                         .ThenByDescending(t => t.RetweetCount);
