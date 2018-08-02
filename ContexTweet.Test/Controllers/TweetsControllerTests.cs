@@ -113,7 +113,7 @@ namespace ContexTweet.Test.Controllers
                 {
                     Id = "twt8",
                     Text = "Tweet 8",
-                    SentimentScore = (float)0.04,
+                    SentimentScore = (float)0.05,
                     FavoriteCount = 0,
                     RetweetCount = 1,
                     NamedEntities = null,
@@ -125,7 +125,7 @@ namespace ContexTweet.Test.Controllers
                 {
                     Id = "twt9",
                     Text = "Tweet 9",
-                    SentimentScore = (float)-0.03,
+                    SentimentScore = (float)-0.05,
                     FavoriteCount = 0,
                     RetweetCount = 0,
                     NamedEntities = null,

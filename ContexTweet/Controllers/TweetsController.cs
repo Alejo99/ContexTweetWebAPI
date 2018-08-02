@@ -107,7 +107,7 @@ namespace ContexTweet.Controllers
                         .ThenByDescending(t => t.Timestamp);
                     break;
                 case "neutral-sentiment":
-                    tweets = tweets.Where(t => t.SentimentScore < 0.05f && t.SentimentScore > -0.05f)
+                    tweets = tweets.Where(t => t.SentimentScore <= 0.05f && t.SentimentScore >= -0.05f)
                         .OrderByDescending(t => t.RetweetCount)
                         .ThenByDescending(t => t.RetweetCount)
                         .ThenByDescending(t => t.Timestamp);
