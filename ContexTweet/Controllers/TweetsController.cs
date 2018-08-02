@@ -30,6 +30,7 @@ namespace ContexTweet.Controllers
             tweetsListVM.Tweets = tweetRepository.Tweets
                 .OrderByDescending(t => t.FavoriteCount)
                 .ThenByDescending(t => t.RetweetCount)
+                .ThenByDescending(t => t.Timestamp)
                 .Skip((p - 1) * pagingOptions.PageSize)
                 .Take(pagingOptions.PageSize)
                 .AsEnumerable();
@@ -63,13 +64,13 @@ namespace ContexTweet.Controllers
         // GET tweets/byurl
         [HttpGet]
         [Route("byurl")]
-        public IActionResult ByUrl(string url, string sortOrder="popular-desc")
+        public IActionResult ByUrl(string url, string filter="no-filter")
         {
             // Check if tweets were clustered for this url
             var tweets = tweetRepository.IndexedUrls
                 .Where(u => u.Url.Equals(url))
                 .Select(t => t.Tweet);
-            tweets = SortTweets(tweets, sortOrder);
+            tweets = FilterTweets(tweets, filter);
             
             if (tweets.Count() > 0)
             {
@@ -80,7 +81,7 @@ namespace ContexTweet.Controllers
             tweets = tweetRepository.Urls
                 .Where(u => u.Url.Equals(url))
                 .Select(t => t.Tweet);
-            tweets = SortTweets(tweets, sortOrder);
+            tweets = FilterTweets(tweets, filter);
 
             if (tweets.Count() > 0)
             {
@@ -91,24 +92,31 @@ namespace ContexTweet.Controllers
             return NotFound();
         }
         
-        private IQueryable<Models.Tweet> SortTweets(IQueryable<Models.Tweet> tweets, string sortOrder="popular-desc")
+        private IQueryable<Models.Tweet> FilterTweets(IQueryable<Models.Tweet> tweets, string filter="no-filter")
         {
-            switch (sortOrder)
+            switch (filter)
             {
-                case "sentiment-desc":
-                    tweets = tweets.OrderByDescending(t => t.SentimentScore);
+                case "pos-sentiment":
+                    tweets = tweets.Where(t => t.SentimentScore >= 0.05f)
+                        .OrderByDescending(t => t.SentimentScore)
+                        .ThenByDescending(t => t.Timestamp);
                     break;
-                case "sentiment-asc":
-                    tweets = tweets.OrderBy(t => t.SentimentScore);
+                case "neg-sentiment":
+                    tweets = tweets.Where(t => t.SentimentScore <= -0.05f)
+                        .OrderBy(t => t.SentimentScore)
+                        .ThenByDescending(t => t.Timestamp);
                     break;
-                case "popular-asc":
-                    tweets = tweets.OrderBy(t => t.FavoriteCount)
-                        .ThenBy(t => t.RetweetCount);
+                case "neutral-sentiment":
+                    tweets = tweets.Where(t => t.SentimentScore < 0.05f && t.SentimentScore > -0.05f)
+                        .OrderByDescending(t => t.RetweetCount)
+                        .ThenByDescending(t => t.RetweetCount)
+                        .ThenByDescending(t => t.Timestamp);
                     break;
-                case "popular-desc":
+                case "no-filter":
                 default:
                     tweets = tweets.OrderByDescending(t => t.FavoriteCount)
-                        .ThenByDescending(t => t.RetweetCount);
+                        .ThenByDescending(t => t.RetweetCount)
+                        .ThenByDescending(t => t.Timestamp);
                     break;
             }
             return tweets;

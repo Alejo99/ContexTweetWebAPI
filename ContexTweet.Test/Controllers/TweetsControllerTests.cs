@@ -108,6 +108,30 @@ namespace ContexTweet.Test.Controllers
                     Timestamp = DateTime.Now,
                     Urls = null,
                     UserId = "usr1"
+                },
+                new Tweet
+                {
+                    Id = "twt8",
+                    Text = "Tweet 8",
+                    SentimentScore = (float)0.04,
+                    FavoriteCount = 0,
+                    RetweetCount = 1,
+                    NamedEntities = null,
+                    Timestamp = DateTime.Now,
+                    Urls = null,
+                    UserId = "usr1"
+                },
+                new Tweet
+                {
+                    Id = "twt9",
+                    Text = "Tweet 9",
+                    SentimentScore = (float)-0.03,
+                    FavoriteCount = 0,
+                    RetweetCount = 0,
+                    NamedEntities = null,
+                    Timestamp = DateTime.Now,
+                    Urls = null,
+                    UserId = "usr1"
                 }
             }.AsQueryable();
 
@@ -119,7 +143,7 @@ namespace ContexTweet.Test.Controllers
                     Tweet = tweets.Where(t => t.Id.Equals("twt1")).FirstOrDefault(),
                     TweetId = "twt1",
                     Url = "http://example.com/url1"
-                    
+
                 },
                 new UrlTweet()
                 {
@@ -163,6 +187,12 @@ namespace ContexTweet.Test.Controllers
                     Url = "http://example.com/url3"
 
                 },
+                new UrlTweet()
+                {
+                    Tweet = tweets.Where(t => t.Id.Equals("twt8")).FirstOrDefault(),
+                    TweetId = "twt8",
+                    Url = "http://example.com/url4"
+                }
             }.AsQueryable();
 
             var indexedUrls = new List<UrlTweetIndex>()
@@ -172,28 +202,30 @@ namespace ContexTweet.Test.Controllers
                     Tweet = tweets.Where(t => t.Id.Equals("twt1")).FirstOrDefault(),
                     TweetId = "twt1",
                     Url = "http://example.com/url1"
-
                 },
                 new UrlTweetIndex()
                 {
                     Tweet = tweets.Where(t => t.Id.Equals("twt2")).FirstOrDefault(),
                     TweetId = "twt2",
                     Url = "http://example.com/url1"
-
                 },
                 new UrlTweetIndex()
                 {
                     Tweet = tweets.Where(t => t.Id.Equals("twt4")).FirstOrDefault(),
                     TweetId = "twt4",
                     Url = "http://example.com/url2"
-
                 },
                 new UrlTweetIndex()
                 {
                     Tweet = tweets.Where(t => t.Id.Equals("twt5")).FirstOrDefault(),
                     TweetId = "twt5",
                     Url = "http://example.com/url2"
-
+                },
+                new UrlTweetIndex()
+                {
+                    Tweet = tweets.Where(t => t.Id.Equals("twt9")).FirstOrDefault(),
+                    TweetId = "twt9",
+                    Url = "http://example.com/url5"
                 }
             }.AsQueryable();
 
@@ -265,12 +297,12 @@ namespace ContexTweet.Test.Controllers
             var page3 = GetViewModel<TweetListViewModel>(Controller.Get(3));
 
             //Assert
-            Assert.Equal(7, page1.PagingInfo.TotalItems);
-            Assert.Equal(7, page3.PagingInfo.TotalItems);
+            Assert.Equal(9, page1.PagingInfo.TotalItems);
+            Assert.Equal(9, page3.PagingInfo.TotalItems);
             Assert.Equal("twt1", page1.Tweets.First()?.Id);
             Assert.Equal("twt4", page1.Tweets.Last()?.Id);
             Assert.Equal("twt3", page3.Tweets.First()?.Id);
-            Assert.Equal("twt3", page3.Tweets.Last()?.Id);
+            Assert.Equal("twt9", page3.Tweets.Last()?.Id);
         }
 
         [Fact]
@@ -318,7 +350,7 @@ namespace ContexTweet.Test.Controllers
             PagingInfoViewModel pageInfo = result.PagingInfo;
             Assert.Equal(2, pageInfo.CurrentPage);
             Assert.Equal(3, pageInfo.ItemsPerPage);
-            Assert.Equal(7, pageInfo.TotalItems);
+            Assert.Equal(9, pageInfo.TotalItems);
             Assert.Equal(3, pageInfo.TotalPages);
         }
         
@@ -381,93 +413,93 @@ namespace ContexTweet.Test.Controllers
         }
 
         [Fact]
-        public void CanGetIndexedTweetsByUrlOrderedByInversePopularity()
+        public void CanGetIndexedNeutralTweetsByUrl()
         {
             //Arrange
             // controller arranged from the controller fixture
 
             //Act
-            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url1", "popular-asc"));
+            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url5", "neutral-sentiment"));
 
             //Assert
-            Assert.Equal(2, result.Count());
-            Assert.Equal("twt2", result.First()?.Id);
-            Assert.Equal("twt1", result.Last()?.Id);
+            Assert.Single(result);
+            Assert.Equal("twt9", result.First()?.Id);
+            Assert.Equal("twt9", result.Last()?.Id);
         }
 
         [Fact]
-        public void CanGetUnindexedTweetsByUrlOrderedByInversePopularity()
+        public void CanGetUnindexedNeutralTweetsByUrl()
         {
             //Arrange
             // controller arranged from the controller fixture
 
             //Act
-            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url3", "popular-asc"));
+            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url4", "neutral-sentiment"));
 
             //Assert
-            Assert.Equal(2, result.Count());
-            Assert.Equal("twt7", result.First()?.Id);
-            Assert.Equal("twt6", result.Last()?.Id);
+            Assert.Single(result);
+            Assert.Equal("twt8", result.First()?.Id);
+            Assert.Equal("twt8", result.Last()?.Id);
         }
 
         [Fact]
-        public void CanGetIndexedTweetsByUrlOrderedByPosSentiment()
+        public void CanGetIndexedPositiveTweetsByUrl()
         {
             //Arrange
             // controller arranged from the controller fixture
 
             //Act
-            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url2", "positive"));
+            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url2", "pos-sentiment"));
 
             //Assert
-            Assert.Equal(2, result.Count());
+            Assert.Single(result);
             Assert.Equal("twt4", result.First()?.Id);
-            Assert.Equal("twt5", result.Last()?.Id);
-        }
-
-        [Fact]
-        public void CanGetIndexedTweetsByUrlOrderedByNegSentiment()
-        {
-            //Arrange
-            // controller arranged from the controller fixture
-
-            //Act
-            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url2", "sentiment-asc"));
-
-            //Assert
-            Assert.Equal(2, result.Count());
-            Assert.Equal("twt5", result.First()?.Id);
             Assert.Equal("twt4", result.Last()?.Id);
         }
 
         [Fact]
-        public void CanGetUnindexedTweetsByUrlOrderedByPosSentiment()
+        public void CanGetIndexedNegativeTweetsByUrl()
         {
             //Arrange
             // controller arranged from the controller fixture
 
             //Act
-            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url3", "sentiment-desc"));
+            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url2", "neg-sentiment"));
 
             //Assert
-            Assert.Equal(2, result.Count());
-            Assert.Equal("twt7", result.First()?.Id);
-            Assert.Equal("twt6", result.Last()?.Id);
+            Assert.Single(result);
+            Assert.Equal("twt5", result.First()?.Id);
+            Assert.Equal("twt5", result.Last()?.Id);
         }
 
         [Fact]
-        public void CanGetUnindexedTweetsByUrlOrderedByNegSentiment()
+        public void CanGetUnindexedPositiveTweetsByUrl()
         {
             //Arrange
             // controller arranged from the controller fixture
 
             //Act
-            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url3", "sentiment-asc"));
+            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url3", "pos-sentiment"));
 
             //Assert
-            Assert.Equal(2, result.Count());
-            Assert.Equal("twt6", result.First()?.Id);
+            Assert.Single(result);
+            Assert.Equal("twt7", result.First()?.Id);
             Assert.Equal("twt7", result.Last()?.Id);
+        }
+
+        [Fact]
+        public void CanGetUnindexedNegativeTweetsByUrl()
+        {
+            //Arrange
+            // controller arranged from the controller fixture
+
+            //Act
+            var result = GetViewModel<IEnumerable<Tweet>>(Controller.ByUrl("http://example.com/url3", "neg-sentiment"));
+
+            //Assert
+            Assert.Single(result);
+            Assert.Equal("twt6", result.First()?.Id);
+            Assert.Equal("twt6", result.Last()?.Id);
         }
 
         [Fact]
