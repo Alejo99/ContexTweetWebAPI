@@ -97,12 +97,12 @@ namespace ContexTweet.Controllers
             switch (filter)
             {
                 case "pos-sentiment":
-                    tweets = tweets.Where(t => t.SentimentScore >= 0.05f)
+                    tweets = tweets.Where(t => t.SentimentScore > 0.05f)
                         .OrderByDescending(t => t.SentimentScore)
                         .ThenByDescending(t => t.Timestamp);
                     break;
                 case "neg-sentiment":
-                    tweets = tweets.Where(t => t.SentimentScore <= -0.05f)
+                    tweets = tweets.Where(t => t.SentimentScore < -0.05f)
                         .OrderBy(t => t.SentimentScore)
                         .ThenByDescending(t => t.Timestamp);
                     break;
